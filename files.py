@@ -9,7 +9,7 @@
 # Standard Python modules
 import os
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, isdir, join
 from urllib.parse import urlparse,quote, unquote
 
 import re
@@ -29,6 +29,9 @@ import pandas as pd
 
 def files_in_dir(dir):
     return [join(dir, f) for f in listdir(dir) if isfile(join(dir, f))]
+
+def dirs_in_dir(dir):
+    return [join(dir, f) for f in listdir(dir) if isdir(join(dir, f))]
 
 #-------------------------------------------------------------------------------------------
 # Pathname Name Tools
@@ -279,6 +282,31 @@ def parse_pdf_directory (dir, delimiter='.', remove=['\n']):
     for file in files:
         sentences = sentences + parse_pdf_file(file)
     return sentences
+
+#-------------------------------------------------------------------------------------------
+# Directory Processing Functions
+#-------------------------------------------------------------------------------------------
+
+def map_files_in_dir (root_dir, fn, recursive=True):
+    files = files_in_dir(root_dir)
+    for f in files:
+        fn(f)
+    if recursive==True:
+        dirs = dirs_in_dir(root_dir)
+        for d in dirs:
+            map_files_in_dir(d, fn, recursive=True)
+
+#-------------------------------------------------------------------------------------------
+
+def reduce_files_in_dir (root_dir, fn, acc, recursive=True):
+    files = files_in_dir(root_dir)
+    for f in files:
+        acc = fn(acc, f)
+    if recursive==True:
+        dirs = dirs_in_dir(root_dir)
+        for d in dirs:
+            acc = reduce_files_in_dir(d, fn, acc, recursive=True)
+    return acc
 
 #-------------------------------------------------------------------------------------------
 # End of File
